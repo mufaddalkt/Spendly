@@ -29,6 +29,10 @@ const defaultForm: GoalFormData = {
   icon: 'Target',
 };
 
+import { ContributionHistoryModal } from '@/components/goals/ContributionHistoryModal';
+import { History, PartyPopper } from 'lucide-react';
+import { SavingsGoal } from '@/types';
+
 export default function GoalsPage() {
   const { savingsGoals, addGoal, updateGoal, deleteGoal, addToGoal, withdrawFromGoal, settings } = useAppStore();
   const currency = settings.currency;
@@ -36,6 +40,7 @@ export default function GoalsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [historyGoal, setHistoryGoal] = useState<SavingsGoal | null>(null);
   const [addMoneyId, setAddMoneyId] = useState<string | null>(null);
   const [withdrawId, setWithdrawId] = useState<string | null>(null);
   const [moneyAmount, setMoneyAmount] = useState('');
@@ -174,6 +179,9 @@ export default function GoalsPage() {
                 <MinusCircle size={14} color="var(--red)" />
               </button>
             </>}
+            <button onClick={() => setHistoryGoal(goal)} className="btn btn-ghost btn-icon btn-sm" data-tooltip="History">
+              <History size={14} color="var(--accent-primary)" />
+            </button>
             <button onClick={() => openEdit(goal.id)} className="btn btn-ghost btn-icon btn-sm"><Edit2 size={13} /></button>
             <button onClick={() => setDeleteId(goal.id)} className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--red)' }}><Trash2 size={13} /></button>
           </div>
@@ -363,6 +371,13 @@ export default function GoalsPage() {
             value={moneyAmount} onChange={(e) => setMoneyAmount(e.target.value)} />
         </div>
       </Modal>
+
+      <ContributionHistoryModal
+        open={!!historyGoal}
+        onClose={() => setHistoryGoal(null)}
+        goal={historyGoal}
+        currency={currency}
+      />
 
       <ConfirmDialog
         open={!!deleteId}

@@ -1,0 +1,243 @@
+// This is your Prisma schema file for Spendly
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+enum PaymentMethod {
+  cash
+  credit_card
+  debit_card
+  bank_transfer
+  paypal
+  apple_pay
+  google_pay
+  other
+}
+
+enum RecurringFrequency {
+  weekly
+  monthly
+  quarterly
+  yearly
+}
+
+enum ThemeMode {
+  light
+  dark
+  system
+}
+
+enum DateFormat {
+  MM_DD_YYYY @map("MM/DD/YYYY")
+  DD_MM_YYYY @map("DD/MM/YYYY")
+  YYYY_MM_DD @map("YYYY-MM-DD")
+}
+
+enum WeekStart {
+  sunday
+  monday
+}
+
+enum NotificationType {
+  budget_warning
+  budget_exceeded
+  upcoming_payment
+  goal_milestone
+  monthly_summary
+  large_expense
+  import_completed
+  info
+}
+
+model User {
+  id            String             @id @default(cuid())
+  name          String
+  email         String             @unique
+  passwordHash  String
+  avatar        String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  transactions  Transaction[]
+  categories    Category[]
+  budgets       Budget[]
+  recurring     RecurringExpense[]
+  savingsGoals  SavingsGoal[]
+  contributions GoalContribution[]
+  notifications Notification[]
+  settings      UserSettings?
+  resetTokens   PasswordResetToken[]
+
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  type         String        // 'income' | 'expense' | 'both'
+  icon         String
+  color        String
+  isCustom     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+
+  transactions Transaction[]
+  budgets      Budget[]
+  recurring    RecurringExpense[]
+
+  @@index([userId])
+  @@map("categories")
+}
+
+model Transaction {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description   String
+  amount        Float
+  type          TransactionType
+  categoryId    String
+  category      Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  date          String          // ISO date string 'YYYY-MM-DD'
+  paymentMethod PaymentMethod
+  account       String          @default("Main Account")
+  notes         String?
+  isRecurring   Boolean         @default(false)
+  recurringId   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, categoryId])
+  @@index([userId, type])
+  @@map("transactions")
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  limit      Float
+  month      String   // 'YYYY-MM'
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, categoryId, month])
+  @@index([userId, month])
+  @@map("budgets")
+}
+
+model RecurringExpense {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  amount        Float
+  categoryId    String
+  category      Category           @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  frequency     RecurringFrequency
+  startDate     String             // 'YYYY-MM-DD'
+  nextPayment   String             // 'YYYY-MM-DD'
+  paymentMethod PaymentMethod
+  isActive      Boolean            @default(true)
+  notes         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([userId, nextPayment])
+  @@map("recurring_expenses")
+}
+
+model SavingsGoal {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  targetAmount  Float
+  currentAmount Float              @default(0)
+  targetDate    String             // 'YYYY-MM-DD'
+  description   String?
+  color         String
+  icon          String
+  isCompleted   Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  contributions GoalContribution[]
+
+  @@index([userId])
+  @@map("savings_goals")
+}
+
+model GoalContribution {
+  id        String      @id @default(cuid())
+  goalId    String
+  goal      SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Float
+  type      String      // 'deposit' | 'withdrawal'
+  date      String      // 'YYYY-MM-DD'
+  note      String?
+  createdAt DateTime    @default(now())
+
+  @@index([goalId, userId])
+  @@map("goal_contributions")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  relatedId String?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model UserSettings {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency         String   @default("USD")
+  dateFormat       String   @default("MM/DD/YYYY")
+  weekStart        String   @default("sunday")
+  theme            String   @default("system")
+  budgetWarnings   Boolean  @default(true)
+  upcomingPayments Boolean  @default(true)
+  monthlySummaries Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+
+  @@map("user_settings")
+}

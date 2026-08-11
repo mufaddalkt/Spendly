@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, X, ArrowLeftRight, PieChart, Target, RefreshCw } from 'lucide-react';
 import { useAppStore } from '@/lib/store/useAppStore';
 import { formatCurrency } from '@/lib/utils/finance';
@@ -13,28 +13,9 @@ interface GlobalSearchProps {
 
 export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
   const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const { transactions, categories, budgets, savingsGoals, recurringExpenses, settings } = useAppStore();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!open) { setQuery(''); return; }
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onClose]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (open) onClose();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onClose]);
 
   const catMap = Object.fromEntries(categories.map((c) => [c.id, c]));
   const q = query.toLowerCase();
@@ -86,6 +67,33 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
       })),
   ];
 
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (!open) { setQuery(''); return; }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((i) => (results.length > 0 ? (i + 1) % results.length : 0));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((i) => (results.length > 0 ? (i - 1 + results.length) % results.length : 0));
+      } else if (e.key === 'Enter') {
+        if (results[selectedIndex]) {
+          e.preventDefault();
+          router.push(results[selectedIndex].href);
+          onClose();
+        }
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open, onClose, results, selectedIndex, router]);
+
   function navigate(href: string) {
     router.push(href);
     onClose();
@@ -101,7 +109,7 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
           <input
             autoFocus
             type="text"
-            placeholder="Search transactions, budgets, goals..."
+            placeholder="Search transactions, budgets, goals... (Use ↑↓ arrows)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             style={{
@@ -123,43 +131,48 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                 No results for &ldquo;{query}&rdquo;
               </div>
             ) : (
-              results.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => navigate(r.href)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                    padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)',
-                    background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
-                    transition: 'background var(--transition)',
-                    color: 'var(--text-primary)',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
-                >
-                  <div style={{
-                    width: 34, height: 34, borderRadius: 'var(--radius-sm)',
-                    background: 'var(--bg-tertiary)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    <r.icon size={16} color="var(--text-secondary)" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {r.label}
+              results.map((r, i) => {
+                const isSelected = i === selectedIndex;
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => navigate(r.href)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)',
+                      background: isSelected ? 'var(--bg-hover)' : 'none',
+                      borderLeft: isSelected ? '3px solid var(--accent-primary)' : '3px solid transparent',
+                      borderTop: 'none', borderRight: 'none',
+                      cursor: 'pointer', textAlign: 'left',
+                      transition: 'background var(--transition)',
+                      color: 'var(--text-primary)',
+                    }}
+                    onMouseEnter={() => setSelectedIndex(i)}
+                  >
+                    <div style={{
+                      width: 34, height: 34, borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-tertiary)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <r.icon size={16} color="var(--text-secondary)" />
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{r.sub}</div>
-                  </div>
-                  <span style={{
-                    fontWeight: 600, fontSize: 13,
-                    color: r.amount < 0 ? 'var(--red)' : 'var(--green)',
-                    flexShrink: 0,
-                  }}>
-                    {r.amount < 0 ? '-' : '+'}{formatCurrency(Math.abs(r.amount), settings.currency)}
-                  </span>
-                </button>
-              ))
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 500, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.label}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{r.sub}</div>
+                    </div>
+                    <span style={{
+                      fontWeight: 600, fontSize: 13,
+                      color: r.amount < 0 ? 'var(--red)' : 'var(--green)',
+                      flexShrink: 0,
+                    }}>
+                      {r.amount < 0 ? '-' : '+'}{formatCurrency(Math.abs(r.amount), settings.currency)}
+                    </span>
+                  </button>
+                );
+              })
             )}
           </div>
         )}
@@ -171,6 +184,7 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
         )}
 
         <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: 16, fontSize: 11, color: 'var(--text-tertiary)' }}>
+          <span>↑↓ Navigate</span>
           <span>↵ Select</span>
           <span>Esc Close</span>
           <span>⌘K Toggle</span>

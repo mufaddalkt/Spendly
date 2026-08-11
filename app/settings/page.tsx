@@ -63,11 +63,14 @@ export default function SettingsPage() {
     transactions, resetToDemo,
   } = useAppStore();
 
+  const { signOut, clearAllUserData } = useAppStore();
   const [profileForm, setProfileForm] = useState({ ...profile });
   const [catModalOpen, setCatModalOpen] = useState(false);
   const [editCatId, setEditCatId] = useState<string | null>(null);
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
   const [resetConfirm, setResetConfirm] = useState(false);
+  const [deleteAccountModal, setDeleteAccountModal] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [catForm, setCatForm] = useState({
     name: '', type: 'expense' as 'expense' | 'income' | 'both',
     icon: 'Tag', color: '#6366f1', isCustom: true,
@@ -303,11 +306,45 @@ export default function SettingsPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '12px 0', borderBottom: '1px solid var(--border-subtle)' }}>
             <div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>Full Backup (JSON)</div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Export all transactions, budgets, goals & settings</div>
+            </div>
+            <button
+              onClick={() => {
+                const fullState = useAppStore.getState();
+                const jsonStr = JSON.stringify(fullState, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `spendly_full_backup_${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success('Full JSON backup downloaded');
+              }}
+              className="btn btn-secondary btn-sm"
+            >
+              <Download size={13} /> Export JSON
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '12px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div>
               <div style={{ fontSize: 14, fontWeight: 500 }}>Reset to Demo Data</div>
               <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Restore all demo transactions, budgets, and goals</div>
             </div>
             <button onClick={() => setResetConfirm(true)} className="btn btn-danger btn-sm">
               <RotateCcw size={13} /> Reset Data
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '12px 0' }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--red)' }}>Delete Account</div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Permanently erase your account and all financial data</div>
+            </div>
+            <button onClick={() => setDeleteAccountModal(true)} className="btn btn-danger btn-sm">
+              <Trash2 size={13} /> Delete Account
             </button>
           </div>
         </div>
@@ -383,6 +420,50 @@ export default function SettingsPage() {
         confirmLabel="Reset Data"
         danger
       />
+
+      {/* Account Deletion Modal with Password Confirmation */}
+      <Modal
+        open={deleteAccountModal}
+        onClose={() => { setDeleteAccountModal(false); setConfirmPassword(''); }}
+        title="Delete Account & Erase Data"
+        size="sm"
+        footer={
+          <>
+            <button onClick={() => setDeleteAccountModal(false)} className="btn btn-secondary">Cancel</button>
+            <button
+              onClick={() => {
+                if (!confirmPassword) {
+                  toast.error('Please enter your password to confirm deletion');
+                  return;
+                }
+                clearAllUserData();
+                signOut();
+                toast.success('Account and data deleted successfully');
+                window.location.href = '/login';
+              }}
+              className="btn btn-danger"
+            >
+              Permanently Delete
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ padding: 12, background: 'var(--red-muted)', color: 'var(--red)', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 500 }}>
+            Warning: This action is irreversible. All your transactions, budgets, goals, and settings will be permanently erased.
+          </div>
+          <div className="form-group">
+            <label className="form-label">Confirm Password</label>
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Enter your account password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

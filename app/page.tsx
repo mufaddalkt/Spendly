@@ -16,6 +16,9 @@ import {
 } from 'recharts';
 import { BudgetWithCategory } from '@/types';
 
+import { calculateFinancialHealthScore } from '@/lib/utils/healthScore';
+import { Activity, RefreshCw } from 'lucide-react';
+
 export default function Dashboard() {
   const { transactions, budgets, savingsGoals, recurringExpenses, categories, settings, profile } = useAppStore();
   const currency = settings.currency;
@@ -25,6 +28,15 @@ export default function Dashboard() {
   const lastMonth = format(new Date(now.getFullYear(), now.getMonth() - 1, 1), 'yyyy-MM');
   const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 18 ? 'Good afternoon' : 'Good evening';
   const firstName = profile?.name ? profile.name.split(' ')[0] : 'User';
+
+  const healthScore = useMemo(
+    () => calculateFinancialHealthScore(transactions, budgets, recurringExpenses, currentMonth),
+    [transactions, budgets, recurringExpenses, currentMonth]
+  );
+
+  const activeRecurring = useMemo(() => recurringExpenses.filter((r) => r.isActive), [recurringExpenses]);
+  const monthlyRecurringTotal = useMemo(() => activeRecurring.reduce((s, r) => s + r.amount, 0), [activeRecurring]);
+  const annualRecurringTotal = monthlyRecurringTotal * 12;
 
   const current = useMemo(() => getMonthlyTotals(transactions, currentMonth), [transactions, currentMonth]);
   const previous = useMemo(() => getMonthlyTotals(transactions, lastMonth), [transactions, lastMonth]);
@@ -134,6 +146,50 @@ export default function Dashboard() {
           </div>
           <h1 className="page-title">{greeting}, {firstName} 👋</h1>
           <p className="page-subtitle">Here&apos;s your financial overview for {format(now, 'MMMM yyyy')}</p>
+        </div>
+      </div>
+
+      {/* Financial Health Card */}
+      <div className="card" style={{ padding: 20, background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-hover) 100%)', border: '1px solid var(--border-default)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'var(--accent-muted)', border: '3px solid var(--accent-primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0, fontWeight: 800, fontSize: 20, color: 'var(--accent-primary)',
+            }}>
+              {healthScore.score}
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Activity size={16} color="var(--accent-primary)" />
+                <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Financial Health Score</h2>
+                <span className="badge badge-info">{healthScore.rating}</span>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>
+                {healthScore.disclaimer}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {healthScore.factors.map((factor) => (
+              <div key={factor.name} style={{
+                padding: '6px 12px', background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)',
+                fontSize: 11, display: 'flex', flexDirection: 'column', gap: 2,
+              }}>
+                <span style={{ color: 'var(--text-tertiary)', fontWeight: 500 }}>{factor.name}</span>
+                <span style={{
+                  fontWeight: 700,
+                  color: factor.status === 'positive' ? 'var(--green)' : factor.status === 'warning' ? 'var(--yellow)' : 'var(--red)',
+                }}>
+                  {factor.score}/100 • {factor.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -373,15 +429,30 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Upcoming Payments */}
+        {/* Upcoming Payments & Recurring Summary */}
         <div className="card">
           <div className="card-header">
-            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Upcoming Payments</h2>
+            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Recurring Summary</h2>
             <Link href="/recurring" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 500 }}>
               Manage <ArrowRight size={12} />
             </Link>
           </div>
-          <div className="card-body" style={{ paddingTop: 4 }}>
+          <div className="card-body" style={{ paddingTop: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+              <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Monthly Cost</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{formatCurrency(monthlyRecurringTotal, currency)}</div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Est. Annual</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{formatCurrency(annualRecurringTotal, currency)}</div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Subscriptions</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-primary)' }}>{activeRecurring.length} Active</div>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {upcomingPayments.length === 0 ? (
                 <div className="empty-state" style={{ padding: 24 }}>

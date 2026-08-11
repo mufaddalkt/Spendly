@@ -141,17 +141,19 @@ export default function BudgetsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
         {[
-          { label: 'Total Budget', value: totalLimit, color: 'var(--accent-primary)', bg: 'var(--accent-muted)' },
-          { label: 'Total Spent', value: totalSpent, color: 'var(--red)', bg: 'var(--red-muted)' },
-          { label: 'Remaining', value: totalRemaining, color: totalRemaining >= 0 ? 'var(--green)' : 'var(--red)', bg: totalRemaining >= 0 ? 'var(--green-muted)' : 'var(--red-muted)' },
+          { label: 'Total Budget', value: formatCurrency(totalLimit, currency), color: 'var(--accent-primary)', sub: `${monthBudgets.length} categories` },
+          { label: 'Total Spent', value: formatCurrency(totalSpent, currency), color: 'var(--red)', sub: `${overallPct.toFixed(0)}% utilization` },
+          { label: 'Remaining', value: formatCurrency(totalRemaining, currency), color: totalRemaining >= 0 ? 'var(--green)' : 'var(--red)', sub: totalRemaining >= 0 ? 'Under limit' : 'Over limit' },
+          { label: 'Spending Speed', value: formatCurrency(totalSpent / Math.max(1, new Date().getDate()), currency) + '/day', color: 'var(--blue)', sub: `Day ${new Date().getDate()} of month` },
         ].map((c) => (
           <div key={c.label} className="card" style={{ padding: '16px 20px' }}>
             <div className="stat-label">{c.label}</div>
-            <div className="stat-value" style={{ fontSize: 22, color: c.color, marginTop: 6 }}>
-              {formatCurrency(c.value, currency)}
+            <div className="stat-value" style={{ fontSize: 20, color: c.color, marginTop: 4 }}>
+              {c.value}
             </div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>{c.sub}</div>
           </div>
         ))}
       </div>

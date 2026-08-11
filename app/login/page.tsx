@@ -150,7 +150,12 @@ export default function LoginPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label className="form-label">Password</label>
+              <Link href="/forgot-password" style={{ fontSize: 11, color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 500 }}>
+                Forgot password?
+              </Link>
+            </div>
             <div style={{ position: 'relative' }}>
               <Lock size={16} style={{
                 position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',

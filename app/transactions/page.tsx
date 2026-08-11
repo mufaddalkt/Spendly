@@ -23,17 +23,74 @@ function DynamicIcon({ name, size = 14, color }: { name: string; size?: number; 
   return Icon ? <Icon size={size} color={color} /> : null;
 }
 
+import { CSVImportModal } from '@/components/transactions/CSVImportModal';
+import { Upload } from 'lucide-react';
+import { useEffect } from 'react';
+
 export default function TransactionsPage() {
   const { transactions, categories, settings, deleteTransaction, deleteTransactions, addTransaction } = useAppStore();
   const currency = settings.currency;
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deletingMany, setDeletingMany] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Keyboard Shortcuts: N = New, E = Edit, Delete = Delete selected
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') return;
+
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        setEditId(null);
+        setModalOpen(true);
+      } else if ((e.key === 'e' || e.key === 'E') && selected.size > 0) {
+        e.preventDefault();
+        const firstSelectedId = Array.from(selected)[0];
+        setEditId(firstSelectedId);
+        setModalOpen(true);
+      } else if (e.key === 'Delete' && selected.size > 0) {
+        e.preventDefault();
+        setDeletingMany(true);
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [selected]);
+
+  function handleDeleteSingle(id: string) {
+    const targetTxn = transactions.find((t) => t.id === id);
+    if (!targetTxn) return;
+
+    deleteTransaction(id);
+    setDeleteId(null);
+
+    toast.success('Transaction deleted', {
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          addTransaction({
+            description: targetTxn.description,
+            amount: targetTxn.amount,
+            type: targetTxn.type,
+            categoryId: targetTxn.categoryId,
+            date: targetTxn.date,
+            paymentMethod: targetTxn.paymentMethod,
+            account: targetTxn.account,
+            notes: targetTxn.notes || '',
+            isRecurring: targetTxn.isRecurring,
+          });
+          toast.success('Transaction restored');
+        },
+      },
+    });
+  }
 
   const [filters, setFilters] = useState<TransactionFilters>({
     search: '',
@@ -160,11 +217,14 @@ export default function TransactionsPage() {
               <Trash2 size={13} /> Delete {selected.size}
             </button>
           )}
+          <button onClick={() => setImportOpen(true)} className="btn btn-secondary btn-sm">
+            <Upload size={13} /> Import CSV
+          </button>
           <button onClick={() => exportTransactionsCSV(filtered, categories)} className="btn btn-secondary btn-sm">
             <Download size={13} /> Export CSV
           </button>
           <button onClick={() => { setEditId(null); setModalOpen(true); }} className="btn btn-primary btn-sm">
-            <Plus size={13} /> Add Transaction
+            <Plus size={13} /> Add Transaction (N)
           </button>
         </div>
       </div>
@@ -379,15 +439,18 @@ export default function TransactionsPage() {
         onClose={() => setDeleteId(null)}
         onConfirm={() => {
           if (deleteId) {
-            deleteTransaction(deleteId);
-            toast.success('Transaction deleted');
-            setDeleteId(null);
+            handleDeleteSingle(deleteId);
           }
         }}
         title="Delete Transaction"
-        message="This will permanently delete this transaction. This action cannot be undone."
+        message="This will delete this transaction. You can undo this action from the notification toast."
         confirmLabel="Delete"
         danger
+      />
+
+      <CSVImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
       />
 
       <ConfirmDialog
