@@ -89,35 +89,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Demo Login Banner */}
-        <div style={{
-          background: 'var(--accent-muted)',
-          border: '1px solid var(--accent-secondary)',
-          borderRadius: 'var(--radius-md)',
-          padding: '12px 14px',
-          marginBottom: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Sparkles size={13} /> Demo Account Available
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-              Explore with realistic sample data
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="btn btn-primary btn-sm"
-            disabled={loading}
-          >
-            Quick Login
-          </button>
-        </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {error && (

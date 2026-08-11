@@ -691,3 +691,26 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   color: var(--text-primary) !important;
   font-size: 13px !important;
 }
+
+/* ─── Mobile Utilities & Responsive Touch Rules ──────────────────────────── */
+.hide-mobile { display: block; }
+.show-mobile { display: none; }
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: flex !important; }
+
+  .data-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 580px;
+  }
+
+  .form-control, .btn {
+    min-height: 42px;
+  }
+}

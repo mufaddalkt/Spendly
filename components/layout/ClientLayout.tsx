@@ -10,6 +10,7 @@ import { MobileNav } from './MobileNav';
 import { AuthGuard } from './AuthGuard';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { TransactionModal } from '@/components/transactions/TransactionModal';
+import { Plus } from 'lucide-react';
 
 const PUBLIC_PATHS = ['/login', '/signup'];
 
@@ -72,6 +73,32 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
             {/* Mobile Bottom Nav */}
             <MobileNav />
+
+            {/* Mobile Floating Action Button */}
+            <button
+              onClick={() => setTxnModalOpen(true)}
+              style={{
+                position: 'fixed',
+                bottom: 74,
+                right: 16,
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                background: 'var(--accent-primary)',
+                color: 'white',
+                border: 'none',
+                boxShadow: 'var(--shadow-xl)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 49,
+                cursor: 'pointer',
+              }}
+              className="show-mobile"
+              aria-label="Add transaction"
+            >
+              <Plus size={22} />
+            </button>
 
             {/* Global Search */}
             <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />

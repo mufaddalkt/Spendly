@@ -12,18 +12,10 @@ import { nanoid } from '@/lib/utils/nanoid';
 
 const today = format(new Date(), 'yyyy-MM-dd');
 
-const demoAccount: UserAccount = {
-  id: 'demo-user-alex',
-  name: 'Alex Johnson',
-  email: 'alex@example.com',
-  password: 'password123',
-  createdAt: today,
-};
-
-const defaultProfile: UserProfile = {
-  id: demoAccount.id,
-  name: demoAccount.name,
-  email: demoAccount.email,
+const emptyProfile: UserProfile = {
+  id: '',
+  name: '',
+  email: '',
   avatar: '',
 };
 
@@ -38,27 +30,6 @@ const defaultSettings: UserSettings = {
     monthlySummaries: true,
   },
 };
-
-const defaultNotifications: Notification[] = [
-  {
-    id: 'notif-001',
-    type: 'budget_warning',
-    title: 'Transport budget is 86% used',
-    message: 'You\'ve spent $214.10 of your $250.00 transport budget this month.',
-    isRead: false,
-    createdAt: today,
-    relatedId: 'budget-003',
-  },
-  {
-    id: 'notif-002',
-    type: 'upcoming_payment',
-    title: 'Netflix payment due in 3 days',
-    message: '$15.99 will be charged on your credit card.',
-    isRead: false,
-    createdAt: today,
-    relatedId: 'rec-netflix',
-  },
-];
 
 interface AppStore extends AppState {
   // Auth Actions
@@ -114,16 +85,16 @@ interface AppStore extends AppState {
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
-      // Initial state
-      userAccounts: [demoAccount],
-      activeUserId: demoAccount.id, // Demo user active by default
-      transactions: seedTransactions,
-      budgets: seedBudgets,
-      savingsGoals: seedGoals,
-      recurringExpenses: seedRecurring,
+      // Initial state — CLEAN SLATE FROM SCRATCH
+      userAccounts: [],
+      activeUserId: '',
+      transactions: [],
+      budgets: [],
+      savingsGoals: [],
+      recurringExpenses: [],
       categories: defaultCategories,
-      notifications: defaultNotifications,
-      profile: defaultProfile,
+      notifications: [],
+      profile: emptyProfile,
       settings: defaultSettings,
       isHydrated: true,
 
@@ -192,11 +163,6 @@ export const useAppStore = create<AppStore>()(
             avatar: user.avatar || '',
           },
         });
-
-        // If signing in as demo user and lists are empty, reload demo data
-        if (user.id === demoAccount.id && get().transactions.length === 0) {
-          get().resetToDemo();
-        }
 
         return { success: true };
       },
@@ -400,12 +366,11 @@ export const useAppStore = create<AppStore>()(
       // ── Data Actions ─────────────────────────────────────────────────────────
       resetToDemo: () => {
         set({
-          transactions: seedTransactions,
-          budgets: seedBudgets,
-          savingsGoals: seedGoals,
-          recurringExpenses: seedRecurring,
-          categories: defaultCategories,
-          notifications: defaultNotifications,
+          transactions: [],
+          budgets: [],
+          savingsGoals: [],
+          recurringExpenses: [],
+          notifications: [],
         });
       },
 
@@ -420,7 +385,7 @@ export const useAppStore = create<AppStore>()(
       },
     }),
     {
-      name: 'spendly-store-v2',
+      name: 'spendly-store-v3',
       storage: createJSONStorage(() => localStorage),
     }
   )

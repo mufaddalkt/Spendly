@@ -347,39 +347,46 @@ export default function Dashboard() {
           </div>
           <div className="card-body" style={{ paddingTop: 4 }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {recentTxns.map((t) => {
-                const cat = categories.find((c) => c.id === t.categoryId);
-                return (
-                  <div key={t.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 0',
-                    borderBottom: '1px solid var(--border-subtle)',
-                  }}>
-                    <div style={{
-                      width: 34, height: 34, borderRadius: 10,
-                      background: cat ? `${cat.color}20` : 'var(--bg-tertiary)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0,
+              {recentTxns.length === 0 ? (
+                <div className="empty-state" style={{ padding: '32px 16px' }}>
+                  <p style={{ margin: '0 0 12px', fontSize: 13 }}>No transactions recorded yet.</p>
+                  <Link href="/transactions" className="btn btn-primary btn-sm">Add First Transaction</Link>
+                </div>
+              ) : (
+                recentTxns.map((t) => {
+                  const cat = categories.find((c) => c.id === t.categoryId);
+                  return (
+                    <div key={t.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 0',
+                      borderBottom: '1px solid var(--border-subtle)',
                     }}>
-                      <DynamicIcon name={cat?.icon || 'MoreHorizontal'} size={15} color={cat?.color || 'var(--text-secondary)'} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {t.description}
+                      <div style={{
+                        width: 34, height: 34, borderRadius: 10,
+                        background: cat ? `${cat.color}20` : 'var(--bg-tertiary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        <DynamicIcon name={cat?.icon || 'MoreHorizontal'} size={15} color={cat?.color || 'var(--text-secondary)'} />
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                        {formatDateShort(t.date)} · {cat?.name || 'Unknown'}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {t.description}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                          {formatDateShort(t.date)} · {cat?.name || 'Unknown'}
+                        </div>
                       </div>
+                      <span style={{
+                        fontSize: 13, fontWeight: 600, flexShrink: 0,
+                        color: t.type === 'income' ? 'var(--green)' : 'var(--red)',
+                      }}>
+                        {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount, currency)}
+                      </span>
                     </div>
-                    <span style={{
-                      fontSize: 13, fontWeight: 600, flexShrink: 0,
-                      color: t.type === 'income' ? 'var(--green)' : 'var(--red)',
-                    }}>
-                      {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount, currency)}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

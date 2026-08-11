@@ -189,17 +189,6 @@ export function Header({ onSearch, onAddTransaction }: HeaderProps) {
           )}
         </div>
 
-        {/* Demo Mode Badge */}
-        {(profile.id === 'demo-user-alex' || profile.email === 'alex@example.com') && (
-          <span style={{
-            fontSize: 11, fontWeight: 600, color: 'var(--yellow)',
-            background: 'var(--yellow-muted)', padding: '2px 8px',
-            borderRadius: 999, letterSpacing: '0.02em',
-          }} className="hide-mobile">
-            Demo Mode
-          </span>
-        )}
-
         {/* User Profile Avatar Dropdown */}
         <div style={{ position: 'relative' }}>
           <button
