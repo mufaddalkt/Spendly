@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, ArrowLeftRight, PieChart, BarChart3, Target, Settings
+  LayoutDashboard, ArrowLeftRight, PieChart, BarChart3, Target, Settings, Sparkles
 } from 'lucide-react';
 
 const mobileItems = [
@@ -11,6 +11,7 @@ const mobileItems = [
   { href: '/transactions', label: 'Txns', icon: ArrowLeftRight },
   { href: '/budgets', label: 'Budgets', icon: PieChart },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/assistant', label: 'AI', icon: Sparkles },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

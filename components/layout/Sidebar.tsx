@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ArrowLeftRight, PieChart, BarChart3, RefreshCw,
   Target, Calendar, Settings, ChevronLeft, ChevronRight,
-  Sun, Moon, Monitor, Wallet
+  Sun, Moon, Monitor, Wallet, Sparkles
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store/useAppStore';
 import { ThemeMode } from '@/types';
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { href: '/budgets', label: 'Budgets', icon: PieChart },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/assistant', label: 'AI Assistant', icon: Sparkles },
   { href: '/recurring', label: 'Recurring', icon: RefreshCw },
   { href: '/goals', label: 'Savings Goals', icon: Target },
   { href: '/calendar', label: 'Calendar', icon: Calendar },
