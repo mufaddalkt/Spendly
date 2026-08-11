@@ -1,37 +1,36 @@
 import { format, parseISO, isValid } from 'date-fns';
 import { Currency, DateFormat, Transaction, Category, MonthlySummary, CategorySpending } from '@/types';
 
-// ─── Currency Formatting ──────────────────────────────────────────────────────
-
-const currencySymbols: Record<Currency, string> = {
-  USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'CA$', AUD: 'A$', CHF: 'CHF', INR: '₹',
-};
-
 export function formatCurrency(amount: number, currency: Currency = 'USD'): string {
-  const symbol = currencySymbols[currency];
-  const absAmount = Math.abs(amount);
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(absAmount);
-  return `${symbol}${formatted}`;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
 }
 
 export function formatAmount(amount: number, currency: Currency = 'USD', showSign = false): string {
-  const symbol = currencySymbols[currency];
-  const formatted = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Math.abs(amount));
-  if (showSign) return `${amount >= 0 ? '+' : '-'}${symbol}${formatted}`;
-  return `${symbol}${formatted}`;
+  const formatted = formatCurrency(Math.abs(amount), currency);
+  if (showSign) return `${amount >= 0 ? '+' : '-'}${formatted}`;
+  return formatted;
 }
 
 export function formatCompact(amount: number, currency: Currency = 'USD'): string {
-  const symbol = currencySymbols[currency];
-  if (Math.abs(amount) >= 1_000_000) return `${symbol}${(amount / 1_000_000).toFixed(1)}M`;
-  if (Math.abs(amount) >= 1_000) return `${symbol}${(amount / 1_000).toFixed(1)}K`;
-  return formatCurrency(amount, currency);
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(amount);
+  } catch {
+    return formatCurrency(amount, currency);
+  }
 }
 
 // ─── Date Formatting ──────────────────────────────────────────────────────────

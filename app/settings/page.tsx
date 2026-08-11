@@ -153,16 +153,48 @@ export default function SettingsPage() {
       {/* Preferences */}
       <Section title="Preferences" icon={Settings2}>
         <Row label="Currency">
-          <select className="form-control" style={{ width: 'auto' }} value={settings.currency}
+          <select className="form-control" style={{ width: 'auto', maxWidth: 260 }} value={settings.currency}
             onChange={(e) => updateSettings({ currency: e.target.value as Currency })}>
-            <option value="USD">USD – US Dollar</option>
-            <option value="EUR">EUR – Euro</option>
-            <option value="GBP">GBP – British Pound</option>
-            <option value="JPY">JPY – Japanese Yen</option>
-            <option value="CAD">CAD – Canadian Dollar</option>
-            <option value="AUD">AUD – Australian Dollar</option>
-            <option value="CHF">CHF – Swiss Franc</option>
-            <option value="INR">INR – Indian Rupee</option>
+            <option value="USD">USD – US Dollar ($)</option>
+            <option value="EUR">EUR – Euro (€)</option>
+            <option value="GBP">GBP – British Pound (£)</option>
+            <option value="JPY">JPY – Japanese Yen (¥)</option>
+            <option value="CAD">CAD – Canadian Dollar (CA$)</option>
+            <option value="AUD">AUD – Australian Dollar (A$)</option>
+            <option value="CHF">CHF – Swiss Franc (CHF)</option>
+            <option value="INR">INR – Indian Rupee (₹)</option>
+            <option value="CNY">CNY – Chinese Yuan (¥)</option>
+            <option value="BRL">BRL – Brazilian Real (R$)</option>
+            <option value="MXN">MXN – Mexican Peso ($)</option>
+            <option value="KRW">KRW – South Korean Won (₩)</option>
+            <option value="RUB">RUB – Russian Ruble (₽)</option>
+            <option value="ZAR">ZAR – South African Rand (R)</option>
+            <option value="SGD">SGD – Singapore Dollar (S$)</option>
+            <option value="HKD">HKD – Hong Kong Dollar (HK$)</option>
+            <option value="NZD">NZD – New Zealand Dollar (NZ$)</option>
+            <option value="SEK">SEK – Swedish Krona (kr)</option>
+            <option value="NOK">NOK – Norwegian Krone (kr)</option>
+            <option value="DKK">DKK – Danish Krone (kr)</option>
+            <option value="PLN">PLN – Polish Zloty (zł)</option>
+            <option value="TRY">TRY – Turkish Lira (₺)</option>
+            <option value="AED">AED – UAE Dirham (AED)</option>
+            <option value="SAR">SAR – Saudi Riyal (SAR)</option>
+            <option value="EGP">EGP – Egyptian Pound (EGP)</option>
+            <option value="THB">THB – Thai Baht (฿)</option>
+            <option value="IDR">IDR – Indonesian Rupiah (Rp)</option>
+            <option value="MYR">MYR – Malaysian Ringgit (RM)</option>
+            <option value="PHP">PHP – Philippine Peso (₱)</option>
+            <option value="VND">VND – Vietnamese Dong (₫)</option>
+            <option value="PKR">PKR – Pakistani Rupee (Rs)</option>
+            <option value="BDT">BDT – Bangladeshi Taka (৳)</option>
+            <option value="ILS">ILS – Israeli New Shekel (₪)</option>
+            <option value="NGN">NGN – Nigerian Naira (₦)</option>
+            <option value="KES">KES – Kenyan Shilling (KSh)</option>
+            <option value="COP">COP – Colombian Peso ($)</option>
+            <option value="ARS">ARS – Argentine Peso ($)</option>
+            <option value="CLP">CLP – Chilean Peso ($)</option>
+            <option value="PEN">PEN – Peruvian Sol (S/.)</option>
+            <option value="UAH">UAH – Ukrainian Hryvnia (₴)</option>
           </select>
         </Row>
         <Row label="Date Format">

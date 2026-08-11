@@ -16,7 +16,7 @@ export type RecurringFrequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | 'CHF' | 'INR';
+export type Currency = string;
 
 export type DateFormat = 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
 
